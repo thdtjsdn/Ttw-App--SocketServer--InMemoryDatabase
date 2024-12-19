@@ -1,0 +1,299 @@
+"use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ServerSocketDatabaseInMemoryClient = void 0;
+var events_1 = require("events");
+var util_1 = require("util");
+/**
+ *
+ */
+var ServerSocketDatabaseInMemoryClient = /** @class */ (function (_super) {
+    __extends(ServerSocketDatabaseInMemoryClient, _super);
+    //----------------------------------------------------------------------------------------------------;
+    /**
+     *
+     * @param port
+     * @param host
+     * @param password
+     */
+    function ServerSocketDatabaseInMemoryClient(port, host, password) {
+        var _this = _super.call(this) || this;
+        _this.net = require('net');
+        _this.isAuthenticated = false; // 인증 상태 추가
+        _this.port = port;
+        _this.host = host || '127.0.0.1';
+        _this.password = password;
+        _this.client = _this.net.createConnection({ port: _this.port, host: _this.host });
+        // 연결 시 타임아웃을 무제한으로 설정
+        _this.client.setTimeout(0);
+        _this.client.on('data', _this.onData.bind(_this));
+        _this.client.on('end', _this.onEnd.bind(_this));
+        _this.client.on('error', _this.onError.bind(_this));
+        _this.writeAsync = (0, util_1.promisify)(_this.client.write.bind(_this.client));
+        return _this;
+    }
+    //----------------------------------------------------------------------------------------------------;
+    ServerSocketDatabaseInMemoryClient.prototype.onData = function (data) { this.emit('response', data.toString().trim()); };
+    ServerSocketDatabaseInMemoryClient.prototype.onEnd = function () {
+        console.log('Disconnected from server');
+        this.isAuthenticated = false; // 연결이 끊어지면 인증 상태 초기화
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.onError = function (err) { console.error(err.message, err.stack, this); };
+    //----------------------------------------------------------------------------------------------------;
+    ServerSocketDatabaseInMemoryClient.prototype.authenticate = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var response;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        if (!(this.password && !this.isAuthenticated)) return [3 /*break*/, 2];
+                        return [4 /*yield*/, this.sendCommand("AUTH ".concat(this.password))];
+                    case 1:
+                        response = _a.sent();
+                        if (response === 'OK') {
+                            this.isAuthenticated = true;
+                        }
+                        else {
+                            throw new Error('Authentication failed');
+                        }
+                        _a.label = 2;
+                    case 2: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.sendCommand = function (command) {
+        var _this = this;
+        return new Promise(function (resolve) {
+            _this.once('response', function (response) { resolve(response); });
+            _this.client.write(command + '\n');
+        });
+    };
+    //----------------------------------------------------------------------------------------------------;
+    ServerSocketDatabaseInMemoryClient.prototype.close = function () { this.client.end(); };
+    //----------------------------------------------------------------------------------------------------;
+    ServerSocketDatabaseInMemoryClient.prototype.data_backup = function () {
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.authenticate()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, this.sendCommand('DATA_BACKUP')];
+            }
+        }); });
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.data_restore = function () {
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.authenticate()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, this.sendCommand('DATA_RESTORE')];
+            }
+        }); });
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.del = function (key) {
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.authenticate()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, this.sendCommand("DEL ".concat(key))];
+            }
+        }); });
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.exists = function (key) {
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.authenticate()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, this.sendCommand("EXISTS ".concat(key))];
+            }
+        }); });
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.expire = function (key, seconds) {
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.authenticate()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, this.sendCommand("EXPIRE ".concat(key, " ").concat(seconds))];
+            }
+        }); });
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.flushAll = function () {
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.authenticate()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, this.sendCommand('FLUSHALL')];
+            }
+        }); });
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.get = function (key) {
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.authenticate()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, this.sendCommand("GET ".concat(key))];
+            }
+        }); });
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.set = function (key, value) {
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.authenticate()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, this.sendCommand("SET ".concat(key, " ").concat(value))];
+            }
+        }); });
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.keys = function (pattern) {
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.authenticate()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, this.sendCommand("KEYS ".concat(pattern))];
+            }
+        }); });
+    };
+    ServerSocketDatabaseInMemoryClient.prototype.ttl = function (key) {
+        return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0: return [4 /*yield*/, this.authenticate()];
+                case 1:
+                    _a.sent();
+                    return [2 /*return*/, this.sendCommand("TTL ".concat(key))];
+            }
+        }); });
+    };
+    return ServerSocketDatabaseInMemoryClient;
+}(events_1.EventEmitter));
+exports.ServerSocketDatabaseInMemoryClient = ServerSocketDatabaseInMemoryClient;
+/*/
+// Example usage
+(async function () {
+    const client = new ServerSocketDatabaseInMemoryClient(41000, '127.0.0.1', 'a');
+
+    try {
+        const setResponse = await client.set('key1', 'value1');
+        AppLogger.log('SET Response:', setResponse); // Output: OK
+
+        const getResponse = await client.get('key1');
+        AppLogger.log('GET Response:', getResponse); // Output: value1
+
+        const keysResponse = await client.keys('*');
+        AppLogger.log('KEYS Response:', keysResponse); // Output: key1
+
+        const backupResponse = await client.data_backup();
+        AppLogger.log('BACKUP Response:', backupResponse); // Output: OK: Backup completed
+
+        const restoreResponse = await client.data_restore();
+        AppLogger.log('RESTORE Response:', restoreResponse); // Output: OK: Restore completed
+    }
+    catch (err) { AppLogger.error('Error:', err); }
+    finally { client.close(); }
+})();
+//*/
+/*/
+// 성능 테스트 - 동기
+const crypto = require('crypto');
+
+(async function () {
+    const client = new ServerSocketDatabaseInMemoryClient(41000, '127.0.0.1', 'a');
+
+    function getRandomKey() {
+        return crypto.randomBytes(8).toString('hex');
+    }
+
+    function getRandomValue() {
+        return crypto.randomBytes(16).toString('hex');
+    }
+
+    async function setRandomKeyValue() {
+        const key = getRandomKey();
+        const value = getRandomValue();
+        const setResponse = await client.set(key, value);
+        AppLogger.log('SET Response:', setResponse); // Output: OK
+        return key;
+    }
+
+    async function getKeyValue(key) {
+        const getResponse = await client.get(key);
+        AppLogger.log('GET Response:', getResponse); // Output: value
+    }
+
+    async function getAllKeys() {
+        const keysResponse = await client.keys('*');
+        AppLogger.log('KEYS Response:', keysResponse); // Output: list of all keys
+    }
+
+    const iterations = 10000; // Number of iterations for performance test
+
+    AppLogger.time('Performance Test');
+
+    for (let i = 0; i < iterations; i++) {
+        const key = await setRandomKeyValue();
+        await getKeyValue(key);
+    }
+
+    // await getAllKeys();
+
+    AppLogger.timeEnd('Performance Test');
+})();
+//*/
