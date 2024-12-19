@@ -2,7 +2,11 @@ import {ServerSocketDatabaseInMemoryClient} from './client/server_socket__databa
 import crypto from 'crypto';
 
 (async function () {
-	const client = new ServerSocketDatabaseInMemoryClient(41000, '127.0.0.1', 'a');
+	const PORT = 41000;
+	const HOST = '127.0.0.1';
+	const PASS = 'a';
+
+	const client = new ServerSocketDatabaseInMemoryClient(PORT, HOST, PASS);
 
 	function getRandomKey() {
 		return crypto.randomBytes(8).toString('hex');
