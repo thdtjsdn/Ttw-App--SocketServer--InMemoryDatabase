@@ -40,13 +40,17 @@
 
 ---
 
-# client test - 0
+# client--test-0.js
 
 ```javascript
 import {ServerSocketDatabaseInMemoryClient} from './client/server_socket__database_inmemory_client.js';
 
 (async function () {
-	const client = new ServerSocketDatabaseInMemoryClient(41000, '127.0.0.1', 'a');
+	const PORT = 41000;
+	const HOST = '127.0.0.1';
+	const PASS = 'a';
+
+	const client = new ServerSocketDatabaseInMemoryClient(PORT, HOST, PASS);
 
 	try {
 		const setResponse = await client.set('key1', 'value1');
@@ -71,14 +75,18 @@ import {ServerSocketDatabaseInMemoryClient} from './client/server_socket__databa
 
 ---
 
-# client test - 1
+# client--test-1.js
 
 ```javascript
 import {ServerSocketDatabaseInMemoryClient} from './client/server_socket__database_inmemory_client.js';
 import crypto from 'crypto';
 
 (async function () {
-	const client = new ServerSocketDatabaseInMemoryClient(41000, '127.0.0.1', 'a');
+	const PORT = 41000;
+	const HOST = '127.0.0.1';
+	const PASS = 'a';
+
+	const client = new ServerSocketDatabaseInMemoryClient(PORT, HOST, PASS);
 
 	function getRandomKey() {
 		return crypto.randomBytes(8).toString('hex');
