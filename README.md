@@ -67,6 +67,7 @@ import {ServerSocketDatabaseInMemoryClient} from './client/server_socket__databa
 	catch (err) { console.error('Error:', err); }
 	finally { client.close(); }
 })();
+```
 
 ---
 
@@ -116,6 +117,7 @@ import crypto from 'crypto';
 
 	console.timeEnd('Performance Test');
 })();
+```
 
 ---
 
