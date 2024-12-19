@@ -17,6 +17,10 @@
 - Linux, Mac은 바이너리 권한 추가 sudo chmod 755 ./TtwServerStreamLinux 또는 Mac
 
 - Log 시간 단위 저장
+- 파일 백업 / 복원 기능
+- 성능은 현재 최신 버전 'Redis' 보다 빠릅니다.(과거 Redis 버전과는 비슷한 속도가 나옵니다)
+- NodeJS 로 구현 되있기 때문에 DB Server에서 기타 로직 가감 가능합니다.
+- Server 외 별도 'DatabaseInMemory' Component 가 존재하여 개별 프로세스에서 사용가능합니다.
 
 ---
 
