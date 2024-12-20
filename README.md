@@ -55,8 +55,10 @@ const DATABASE_SERVERS = {
 for(var s in DATABASE_SERVERS){
 	let PORT = DATABASE_SERVERS[s][0]; // SERVER PORT
 	let PASS = DATABASE_SERVERS[s][1]; // PASSWORD
-	global.bootstrap(PORT, PASS);
+	DATABASE_SERVERS[s] = global.bootstrap(PORT, PASS);
 }
+
+console.log(DATABASE_SERVERS);
 ```
 
 ---
