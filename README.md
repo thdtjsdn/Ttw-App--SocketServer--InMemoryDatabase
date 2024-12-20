@@ -194,13 +194,13 @@ import crypto from 'crypto';
 		const keys = client.keys('*');
 		console.log('KEYS Response:', keys); // Output: [ 'key1' ]
 
-		response = client.dataBackup();
+		response = await client.dataBackup();
 		console.log('BACKUP Response:', response); // Output: OK: Backup completed
 
 		client.flushAll();
 		console.log('Data flushed.');
 
-		response = client.dataRestore();
+		response = await client.dataRestore();
 		console.log('RESTORE Response:', response); // Output: OK: Restore completed
 
 		response = client.get('key1');
