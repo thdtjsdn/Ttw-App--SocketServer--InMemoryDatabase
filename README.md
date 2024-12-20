@@ -185,25 +185,25 @@ import crypto from 'crypto';
 	const client = new DatabaseInMemoryClient(path_backup_data);
 
 	try {
-		let response = await client.set('key1', 'value1');
+		let response = client.set('key1', 'value1');
 		console.log('SET Response:', response); // Output: OK
 
-		response = await client.get('key1');
+		response = client.get('key1');
 		console.log('GET Response:', response); // Output: value1
 
-		const keys = await client.keys('*');
+		const keys = client.keys('*');
 		console.log('KEYS Response:', keys); // Output: [ 'key1' ]
 
-		response = await client.dataBackup();
+		response = client.dataBackup();
 		console.log('BACKUP Response:', response); // Output: OK: Backup completed
 
-		await client.flushAll();
+		client.flushAll();
 		console.log('Data flushed.');
 
-		response = await client.dataRestore();
+		response = client.dataRestore();
 		console.log('RESTORE Response:', response); // Output: OK: Restore completed
 
-		response = await client.get('key1');
+		response = client.get('key1');
 		console.log('GET Response after restore:', response); // Output: value1
 
 		// getter;
