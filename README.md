@@ -178,6 +178,11 @@ import crypto from 'crypto';
 
 		response = await client.get('key1');
 		console.log('GET Response after restore:', response); // Output: value1
+
+		// getter;
+		const MEMORY_STORE = client.getMemoryStore();
+		// setter;
+		client.setMemoryStore('key', 'value');
 	}
 	catch (err) { console.error('Error:', err); }
 })();
