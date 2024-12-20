@@ -61,6 +61,31 @@ for(var s in DATABASE_SERVERS){
 
 ---
 
+# servers
+
+```javascript
+const DATABASE_SERVERS = {
+	// PORT, PASSWORD
+	MAIN : [41000, 'a']
+
+	, MEMBER : [41010, 'a']
+
+	, STOCK_KR : [41020, 'a']
+	, STOCK_US : [41021, 'a']
+};
+
+for(var s in DATABASE_SERVERS){
+	let PORT = DATABASE_SERVERS[s][0]; // SERVER PORT
+	let PASS = DATABASE_SERVERS[s][1]; // PASSWORD
+
+	DATABASE_SERVERS[s] = global.bootstrap(PORT, PASS);
+}
+
+console.log(DATABASE_SERVERS);
+```
+
+---
+
 # client--test-0.js
 
 ```javascript
