@@ -1,25 +1,21 @@
-Proprietary License
+MIT License
 
-A proprietary license is a type of software license that gives the owner of the software exclusive rights to control how the software is used. This includes the right to restrict who can use the software, how it can be used, and how it can be modified.
+Copyright (c) 2024 thdtjsdn
 
-Proprietary licenses are often used for commercial software, where the owner wants to protect their investment in the software. They can also be used for software that is considered to be sensitive or confidential, such as software used in government or military applications.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Proprietary licenses typically include the following terms:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-Grant of rights: The owner grants the user certain rights to use the software, such as the right to use, copy, and distribute the software.
-Restrictions: The owner may impose restrictions on how the software can be used, such as prohibiting commercial use or requiring the user to agree to certain terms and conditions.
-Licensing fees: The owner may charge a licensing fee to use the software.
-Proprietary licenses can be complex and can vary depending on the specific software and the owner's needs. It is important to carefully review the terms of a proprietary license before agreeing to use the software.
-
-독점 라이선스
-
-독점 라이선스는 소프트웨어 라이선스의 한 종류로, 소프트웨어의 소유자가 소프트웨어의 사용을 독점적으로 제어할 수 있는 권리를 부여하는 라이선스입니다. 여기에는 소프트웨어를 사용할 수 있는 사람, 소프트웨어를 어떻게 사용할 수 있는지, 소프트웨어를 어떻게 수정할 수 있는지에 대한 권리가 포함됩니다.
-
-독점 라이선스는 종종 상용 소프트웨어에 사용됩니다. 소프트웨어에 대한 투자를 보호하기 위해 소유자가 독점 라이선스를 사용합니다. 또한 정부나 군사 응용 프로그램에서 사용되는 민감하거나 기밀이 유지되어야 하는 소프트웨어에도 독점 라이선스가 사용될 수 있습니다.
-
-독점 라이선스는 일반적으로 다음과 같은 조항을 포함합니다.
-
-권리 부여: 소유자는 사용자에게 소프트웨어를 사용할 수 있는 특정 권리를 부여합니다. 예를 들어, 소프트웨어를 사용할 수 있는 권리, 소프트웨어를 복제할 수 있는 권리, 소프트웨어를 배포할 수 있는 권리 등이 있습니다.
-제한: 소유자는 소프트웨어를 사용할 수 있는 방법에 대한 제한을 부과할 수 있습니다. 예를 들어, 상업적 사용을 금지하거나 사용자에게 특정 조건과 약관에 동의하도록 요구할 수 있습니다.
-라이선스 비용: 소유자는 소프트웨어를 사용하기 위해 라이선스 비용을 부과할 수 있습니다.
-독점 라이선스는 복잡할 수 있으며 소프트웨어의 특성과 소유자의 요구 사항에 따라 다를 수 있습니다. 독점 라이선스의 조건을 주의 깊게 검토한 후에 소프트웨어를 사용하기 전에 동의하는 것이 중요합니다.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
