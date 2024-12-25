@@ -1,6 +1,8 @@
 .CMD.exe
 .config.json
 .data--userAgent.json
+.DELETE - log - 80.bat
+.DELETE - MEMORY_DB - ＊.gz.json.bat
 *.gz
 
 
