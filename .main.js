@@ -2,126 +2,113 @@ console.log(1);
 
 //----------------------------------------------------------------------------------------------------;
 
-/*/
-// How to use in server mode
+const DATABASE_SERVERS = (function () {
+	const PASSWORD = 'a';
+	const SOCKET_SERVER_MEMORY_DATABASES = {
+		ETC: [41000, PASSWORD]
 
-const DATABASE_SERVERS = {
-	// PORT, PASSWORD
-	MAIN : [41000, 'a']
-};
+		, MEMBER: [41100, PASSWORD]
 
-for(var s in DATABASE_SERVERS){
-	let PORT = DATABASE_SERVERS[s][0]; // SERVER PORT
-	let PASS = DATABASE_SERVERS[s][1]; // PASSWORD
+		, STOCK_KR: [41200, PASSWORD]
 
-	DATABASE_SERVERS[s] = global.bootstrap(PORT, PASS);
-}
+		, STOCK_US: [41300, PASSWORD]
 
-console.log(DATABASE_SERVERS);
-//*/
+		, VCURRENCY_KR: [41400, PASSWORD]
 
-//----------------------------------------------------------------------------------------------------;
-
-/*/
-// How to use in servers mode
-
-const DATABASE_SERVERS = {
-	// PORT, PASSWORD
-	MAIN : [41000, 'a']
-
-	, MEMBER : [41010, 'a']
-
-	, STOCK_KR : [41020, 'a']
-	, STOCK_US : [41021, 'a']
-};
-
-for(var s in DATABASE_SERVERS){
-	let PORT = DATABASE_SERVERS[s][0]; // SERVER PORT
-	let PASS = DATABASE_SERVERS[s][1]; // PASSWORD
-
-	DATABASE_SERVERS[s] = global.bootstrap(PORT, PASS);
-}
-
-console.log(DATABASE_SERVERS);
-//*/
-
-//----------------------------------------------------------------------------------------------------;
-
-//*/
-// How to use in servers mode
-
-// 'SET_CB' sample
-
-const DATABASE_SERVERS = {
-	// PORT, PASSWORD
-	MAIN : [41000, 'a']
-
-	, MEMBER : [41010, 'a']
-
-	, STOCK_KR : [41020, 'a']
-	, STOCK_US : [41021, 'a']
-};
-
-function SET_CB(key, value){
-	console.log(1);
-	console.log(Date.now(), key, value);
-
-	// ...
-}
-
-for(var s in DATABASE_SERVERS){
-	let PORT = DATABASE_SERVERS[s][0]; // SERVER PORT
-	let PASS = DATABASE_SERVERS[s][1]; // PASSWORD
-
-	DATABASE_SERVERS[s] = global.bootstrap(PORT, PASS);
-	DATABASE_SERVERS[s].getDB().callbacks.set_cb = SET_CB;
-	console.log(DATABASE_SERVERS[s].getDB().callbacks.set_cb);
-}
-
-//console.log(DATABASE_SERVERS);
-//*/
-
-//----------------------------------------------------------------------------------------------------;
-
-// How to use in component mode
-
-(async function () {
-	const PORT = 42000;
-	const path_backup_data = './.data/' + PORT + '/database_backup.json.gz';
-	const client = new DatabaseInMemoryClient(path_backup_data);
-
-	// getter;
-	const DB = client.getDB();
-	DB.callbacks.set_cb = function(key, value){
-		console.log('---------- SET_CB ----------')
-		console.log(Date.now(), key, value);
+		, VCURRENCY_WO: [41500, PASSWORD]
 	};
-	console.log(DB.callbacks.set_cb);
 
-	// setter;
-	// client.setMemoryStore('key', 'value');
+	function SET_CB(key, value) {
+		console.log(1);
+		console.log(Date.now(), key, value);
 
-	let response = client.set('key1', 'value1');
-	console.log('SET Response:', response); // Output: OK
+		// ...
+	}
 
-	response = client.set_cb('key2', 'value2');
-	console.log('SET_CB Response:', response); // Output: OK
+	for (var s in SOCKET_SERVER_MEMORY_DATABASES) {
+		let PORT = SOCKET_SERVER_MEMORY_DATABASES[s][0]; // SERVER PORT
+		let PASS = SOCKET_SERVER_MEMORY_DATABASES[s][1]; // PASSWORD
 
-	response = client.get('key1');
-	console.log('GET Response:', response); // Output: value1
+		SOCKET_SERVER_MEMORY_DATABASES[s] = global.createSocketServerSocketDatabaseInMemory(PORT, PASS);
+		SOCKET_SERVER_MEMORY_DATABASES[s].setBOOL_SET_LOG(false);
+		SOCKET_SERVER_MEMORY_DATABASES[s].getDB().callbacks.set_cb = SET_CB;
+		console.log(SOCKET_SERVER_MEMORY_DATABASES[s].getDB().callbacks.set_cb);
+	}
 
-	const keys = client.keys('*');
-	console.log('KEYS Response:', keys); // Output: [ 'key1' ]
+	// console.log(SOCKET_SERVER_MEMORY_DATABASES);
 
-	response = await client.dataBackup();
-	console.log('BACKUP Response:', response); // Output: OK: Backup completed
-
-	client.flushAll();
-	console.log('Data flushed.');
-
-	response = await client.dataRestore();
-	console.log('RESTORE Response:', response); // Output: OK: Restore completed
-
-	response = client.get('key1');
-	console.log('GET Response after restore:', response); // Output: value1
+	return SOCKET_SERVER_MEMORY_DATABASES;
 })();
+
+//----------------------------------------------------------------------------------------------------;
+
+(function () {
+	/*/
+	UtilHttpRequest.check_IP
+	UtilHttpRequest.check_IP_N_Response
+	//*/
+	function createHTTPServerForInMemoryDatabase(server) {
+		const PORT = server.value_port + 1;
+		console.log('createHTTPServerForInMemoryDatabase - InMemoryDB(' + server.value_port + ') / HTTPServer(' + PORT + ')');
+
+		const CONFIG = UtilFS.readFile_UTF8_Sync__JSON('.config.json');
+		const PASSWORD = CONFIG.PASSWORD;
+
+		global.createServerHTTP(PORT);
+		// console.log(global['SERVER_HTTP' + PORT]);
+
+		const S = global['SERVER_HTTP' + PORT];
+		const SD = server.getDB();
+
+		/*/
+		http://localhost:41001/g/set?k=a&v=asd
+		http://localhost:41001/g/get?k=a
+		http://localhost:41001/g/del?k=a
+		//*/
+		S.addRouter('/g/del', function (req, res, owner) {
+			if (UtilHttpRequest.check_IP_N_Response(req, res, owner)) {
+				const queryObject = UtilURL.getQueryObjectFromURL_Decode(String(req.url));
+				if (SD[queryObject.k]) {
+					delete SD[queryObject.k];
+					UtilHttpResponse.response_200_Boolean_True(req, res);
+				}
+				else { UtilHttpResponse.response_404(req, res); }
+			}
+		});
+		S.addRouter('/g/get', function (req, res, owner) {
+			if (UtilHttpRequest.check_IP_N_Response(req, res, owner)) {
+				const queryObject = UtilURL.getQueryObjectFromURL_Decode(String(req.url));
+				if (SD[queryObject.k]) { UtilHttpResponse.response_200_String(req, res, SD[queryObject.k]); }
+				else { UtilHttpResponse.response_404(req, res); }
+			}
+		});
+		S.addRouter('/g/set', function (req, res, owner) {
+			if (UtilHttpRequest.check_IP_N_Response(req, res, owner)) {
+				const queryObject = UtilURL.getQueryObjectFromURL_Decode(String(req.url));
+				try { SD[queryObject.k] = queryObject.v; }
+				catch (err) { UtilHttpResponse.response_500(req, res, err.message); return; }
+				UtilHttpResponse.response_200_Boolean_True(req, res);
+			}
+		});
+		S.addRouter('/p/set', function (req, res, owner) {
+			if (UtilHttpRequest.check_IP_N_Response(req, res, owner)) {
+				const queryObject = UtilURL.getQueryObjectFromURL_Decode(String(req.url));
+
+				let clientData = '';
+				req.on('data', function (chunk) { clientData += chunk; });
+				req.on('end', function () { try { SD[queryObject.k] = clientData } catch (err) { } });
+
+				UtilHttpResponse.response_200_Boolean_True(req, res);
+			}
+		});
+	}
+
+	//--------------------------------------------------;
+
+	for (var s in DATABASE_SERVERS) {
+		const server = DATABASE_SERVERS[s];
+		createHTTPServerForInMemoryDatabase(server);
+	}
+})();
+
+//----------------------------------------------------------------------------------------------------;
