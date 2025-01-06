@@ -54,6 +54,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ServerSocketDatabaseInMemoryClient = void 0;
 var events_1 = require("events");
 var util_1 = require("util");
+//var app_logger_1 = require("../../log/app_logger");
 /**
  *
  */
@@ -73,22 +74,55 @@ var ServerSocketDatabaseInMemoryClient = /** @class */ (function (_super) {
 		_this.port = port;
 		_this.host = host || '127.0.0.1';
 		_this.password = password;
-		_this.client = _this.net.createConnection({ port: _this.port, host: _this.host });
-		// 연결 시 타임아웃을 무제한으로 설정
-		_this.client.setTimeout(0);
-		_this.client.on('data', _this.onData.bind(_this));
-		_this.client.on('end', _this.onEnd.bind(_this));
-		_this.client.on('error', _this.onError.bind(_this));
+		_this.client = _this.connect();
 		_this.writeAsync = (0, util_1.promisify)(_this.client.write.bind(_this.client));
 		return _this;
 	}
 	//----------------------------------------------------------------------------------------------------;
+	ServerSocketDatabaseInMemoryClient.prototype.connect = function () {
+		var _this = this;
+		this.client = this.net.createConnection({ port: this.port, host: this.host });
+		this.client.setTimeout(0);
+		this.client.on('data', this.onData.bind(this));
+		this.client.on('end', this.onEnd.bind(this));
+		this.client.on('error', this.onError.bind(this));
+		setTimeout(function () { return __awaiter(_this, void 0, void 0, function () {
+			var pong;
+			return __generator(this, function (_a) {
+				switch (_a.label) {
+					case 0: return [4 /*yield*/, this.ping('ping')];
+					case 1:
+						pong = _a.sent();
+						//app_logger_1.AppLogger.log('connect - ' + this.host + ':' + this.port + ' - ' + pong, this);
+						return [2 /*return*/];
+				}
+			});
+		}); }, 1000);
+		return this.client;
+	};
 	ServerSocketDatabaseInMemoryClient.prototype.onData = function (data) { this.emit('response', data.toString().trim()); };
 	ServerSocketDatabaseInMemoryClient.prototype.onEnd = function () {
-		console.log('Disconnected from server');
+		//app_logger_1.AppLogger.log('onEnd - ' + this.host + ':' + this.port, this);
 		this.isAuthenticated = false; // 연결이 끊어지면 인증 상태 초기화
+		this.reconnect();
 	};
-	ServerSocketDatabaseInMemoryClient.prototype.onError = function (err) { console.error(err.message, err.stack, this); };
+	ServerSocketDatabaseInMemoryClient.prototype.onError = function (err) {
+		//app_logger_1.AppLogger.error(err.message, err.stack, this);
+		this.isAuthenticated = false; // 연결이 끊어지면 인증 상태 초기화
+		if (err.code === 'ECONNRESET') {
+			this.reconnect();
+		}
+		else {
+			this.reconnect();
+		}
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.reconnect = function () {
+		var _this = this;
+		setTimeout(function () {
+			//app_logger_1.AppLogger.log('reconnect - ' + _this.host + ':' + _this.port, _this);
+			_this.connect();
+		}, 3000); // 3초 후 재접속 시도
+	};
 	//----------------------------------------------------------------------------------------------------;
 	ServerSocketDatabaseInMemoryClient.prototype.authenticate = function () {
 		return __awaiter(this, void 0, void 0, function () {
@@ -121,115 +155,141 @@ var ServerSocketDatabaseInMemoryClient = /** @class */ (function (_super) {
 	};
 	//----------------------------------------------------------------------------------------------------;
 	ServerSocketDatabaseInMemoryClient.prototype.close = function () { this.client.end(); };
+	ServerSocketDatabaseInMemoryClient.prototype.isConnected = function () { return !this.client.destroyed; };
 	//----------------------------------------------------------------------------------------------------;
 	ServerSocketDatabaseInMemoryClient.prototype.data_backup = function () {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand('DATA_BACKUP')];
-			}
+			return [2 /*return*/, this.sendCommand('DATA_BACKUP')];
 		}); });
 	};
 	ServerSocketDatabaseInMemoryClient.prototype.data_restore = function () {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand('DATA_RESTORE')];
-			}
+			return [2 /*return*/, this.sendCommand('DATA_RESTORE')];
 		}); });
 	};
+	//--------------------------------------------------;
+	ServerSocketDatabaseInMemoryClient.prototype.arr_new = function (key) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("A_NEW ".concat(key))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.arr_pop = function (key) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("A_POP ".concat(key))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.arr_push = function (key, value) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("A_PUSH ".concat(key, " ").concat(value))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.arr_shift = function (key) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("A_SHIFT ".concat(key))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.arr_unshift = function (key, value) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("A_UNSHIFT ".concat(key, " ").concat(value))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.arr_sort = function (key) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("A_SORT ".concat(key))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.arr_sort_c = function (key, sortFunc) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("A_SORT_C ".concat(key, " ").concat(sortFunc))];
+		}); });
+	};
+	//--------------------------------------------------;
 	ServerSocketDatabaseInMemoryClient.prototype.del = function (key) {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand("DEL ".concat(key))];
-			}
+			return [2 /*return*/, this.sendCommand("DEL ".concat(key))];
 		}); });
 	};
 	ServerSocketDatabaseInMemoryClient.prototype.exists = function (key) {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand("EXISTS ".concat(key))];
-			}
+			return [2 /*return*/, this.sendCommand("EXISTS ".concat(key))];
 		}); });
 	};
 	ServerSocketDatabaseInMemoryClient.prototype.expire = function (key, seconds) {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand("EXPIRE ".concat(key, " ").concat(seconds))];
-			}
+			return [2 /*return*/, this.sendCommand("EXPIRE ".concat(key, " ").concat(seconds))];
 		}); });
 	};
 	ServerSocketDatabaseInMemoryClient.prototype.flushAll = function () {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand('FLUSHALL')];
-			}
+			return [2 /*return*/, this.sendCommand('FLUSHALL')];
 		}); });
 	};
 	ServerSocketDatabaseInMemoryClient.prototype.get = function (key) {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand("GET ".concat(key))];
-			}
+			return [2 /*return*/, this.sendCommand("GET ".concat(key))];
 		}); });
 	};
 	ServerSocketDatabaseInMemoryClient.prototype.set = function (key, value) {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand("SET ".concat(key, " ").concat(value))];
-			}
+			return [2 /*return*/, this.sendCommand("SET ".concat(key, " ").concat(value))];
 		}); });
 	};
 	ServerSocketDatabaseInMemoryClient.prototype.set_cb = function (key, value) {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand("SET_CB ".concat(key, " ").concat(value))];
-			}
+			return [2 /*return*/, this.sendCommand("SET_CB ".concat(key, " ").concat(value))];
 		}); });
 	};
+	ServerSocketDatabaseInMemoryClient.prototype.set_cbf = function (key, value) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("SET_CBF ".concat(key, " ").concat(value))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.set_cf = function (key, value) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("SET_CF ".concat(key, " ").concat(value))];
+		}); });
+	};
+	//--------------------------------------------------;
 	ServerSocketDatabaseInMemoryClient.prototype.keys = function (pattern) {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand("KEYS ".concat(pattern))];
-			}
+			return [2 /*return*/, this.sendCommand("KEYS ".concat(pattern))];
+		}); });
+	};
+	//--------------------------------------------------;
+	ServerSocketDatabaseInMemoryClient.prototype.obj_new = function (key) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("O_NEW ".concat(key))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.obj_get = function (key0, key1) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("O_GET ".concat(key0, " ").concat(key1))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.obj_get_del = function (key0, key1) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("O_GET_SET ".concat(key0, " ").concat(key1))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.obj_set = function (key0, key1, value) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("O_SET ".concat(key0, " ").concat(key1, " ").concat(value))];
+		}); });
+	};
+	ServerSocketDatabaseInMemoryClient.prototype.obj_sort_c = function (key, sortFunc) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("O_SORT_C ".concat(key, " ").concat(sortFunc))];
+		}); });
+	};
+	//--------------------------------------------------;
+	ServerSocketDatabaseInMemoryClient.prototype.ping = function (key) {
+		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
+			return [2 /*return*/, this.sendCommand("PING ".concat(key))];
 		}); });
 	};
 	ServerSocketDatabaseInMemoryClient.prototype.ttl = function (key) {
 		return __awaiter(this, void 0, void 0, function () { return __generator(this, function (_a) {
-			switch (_a.label) {
-				case 0: return [4 /*yield*/, this.authenticate()];
-				case 1:
-					_a.sent();
-					return [2 /*return*/, this.sendCommand("TTL ".concat(key))];
-			}
+			return [2 /*return*/, this.sendCommand("TTL ".concat(key))];
 		}); });
 	};
 	return ServerSocketDatabaseInMemoryClient;
@@ -242,21 +302,21 @@ exports.ServerSocketDatabaseInMemoryClient = ServerSocketDatabaseInMemoryClient;
 
 	try {
 		const setResponse = await client.set('key1', 'value1');
-		console.log('SET Response:', setResponse); // Output: OK
+		AppLogger.log('SET Response:', setResponse); // Output: OK
 
 		const getResponse = await client.get('key1');
-		console.log('GET Response:', getResponse); // Output: value1
+		AppLogger.log('GET Response:', getResponse); // Output: value1
 
 		const keysResponse = await client.keys('*');
-		console.log('KEYS Response:', keysResponse); // Output: key1
+		AppLogger.log('KEYS Response:', keysResponse); // Output: key1
 
 		const backupResponse = await client.data_backup();
-		console.log('BACKUP Response:', backupResponse); // Output: OK: Backup completed
+		AppLogger.log('BACKUP Response:', backupResponse); // Output: OK: Backup completed
 
 		const restoreResponse = await client.data_restore();
-		console.log('RESTORE Response:', restoreResponse); // Output: OK: Restore completed
+		AppLogger.log('RESTORE Response:', restoreResponse); // Output: OK: Restore completed
 	}
-	catch (err) { console.error('Error:', err); }
+	catch (err) { AppLogger.error('Error:', err); }
 	finally { client.close(); }
 })();
 //*/
@@ -279,23 +339,23 @@ const crypto = require('crypto');
 		const key = getRandomKey();
 		const value = getRandomValue();
 		const setResponse = await client.set(key, value);
-		console.log('SET Response:', setResponse); // Output: OK
+		AppLogger.log('SET Response:', setResponse); // Output: OK
 		return key;
 	}
 
 	async function getKeyValue(key) {
 		const getResponse = await client.get(key);
-		console.log('GET Response:', getResponse); // Output: value
+		AppLogger.log('GET Response:', getResponse); // Output: value
 	}
 
 	async function getAllKeys() {
 		const keysResponse = await client.keys('*');
-		console.log('KEYS Response:', keysResponse); // Output: list of all keys
+		AppLogger.log('KEYS Response:', keysResponse); // Output: list of all keys
 	}
 
 	const iterations = 10000; // Number of iterations for performance test
 
-	console.time('Performance Test');
+	AppLogger.time('Performance Test');
 
 	for (let i = 0; i < iterations; i++) {
 		const key = await setRandomKeyValue();
@@ -304,7 +364,7 @@ const crypto = require('crypto');
 
 	// await getAllKeys();
 
-	console.timeEnd('Performance Test');
+	AppLogger.timeEnd('Performance Test');
 })();
 //*/
 /*/
@@ -326,23 +386,23 @@ const crypto = require('crypto');
 		const key = getRandomKey();
 		const value = getRandomValue();
 		const setResponse = await client.set(key, value);
-		console.log('SET Response:', setResponse); // Output: OK
+		AppLogger.log('SET Response:', setResponse); // Output: OK
 		return key;
 	}
 
 	async function getKeyValue(key) {
 		const getResponse = await client.get(key);
-		console.log('GET Response:', getResponse); // Output: value
+		AppLogger.log('GET Response:', getResponse); // Output: value
 	}
 
 	async function getAllKeys() {
 		const keysResponse = await client.keys('*');
-		console.log('KEYS Response:', keysResponse); // Output: list of all keys
+		AppLogger.log('KEYS Response:', keysResponse); // Output: list of all keys
 	}
 
 	const iterations = 10000; // Number of iterations for performance test
 
-	console.time('Performance Test');
+	AppLogger.time('Performance Test');
 
 	const promises = [];
 	for (let i = 0; i < iterations; i++) {
@@ -354,7 +414,7 @@ const crypto = require('crypto');
 
 	// await getAllKeys();
 
-	console.timeEnd('Performance Test');
+	AppLogger.timeEnd('Performance Test');
 })();
 //*/
 /*/
@@ -376,23 +436,23 @@ const crypto = require('crypto');
 		const key = getRandomKey();
 		const value = getRandomValue();
 		const setResponse = await client.set(key, value);
-		console.log('SET Response:', setResponse); // Output: OK
+		AppLogger.log('SET Response:', setResponse); // Output: OK
 		return key;
 	}
 
 	async function getKeyValue(key) {
 		const getResponse = await client.get(key);
-		console.log('GET Response:', getResponse); // Output: value
+		AppLogger.log('GET Response:', getResponse); // Output: value
 	}
 
 	async function getAllKeys() {
 		const keysResponse = await client.keys('*');
-		console.log('KEYS Response:', keysResponse); // Output: list of all keys
+		AppLogger.log('KEYS Response:', keysResponse); // Output: list of all keys
 	}
 
 	const iterations = 10000; // Number of iterations for performance test
 
-	console.time('Performance Test');
+	AppLogger.time('Performance Test');
 
 	const promises = [];
 	for (let i = 0; i < iterations; i++) {
@@ -404,7 +464,7 @@ const crypto = require('crypto');
 
 	// await getAllKeys();
 
-	console.timeEnd('Performance Test');
+	AppLogger.timeEnd('Performance Test');
 })();
 //*/
 /*/
@@ -426,19 +486,19 @@ const crypto = require('crypto');
 		const key = getRandomKey();
 		const value = getRandomValue();
 		const setResponse = await client.set(key, value);
-		console.log('SET Response:', setResponse); // Output: OK
+		AppLogger.log('SET Response:', setResponse); // Output: OK
 		return key;
 	}
 
 	async function getKeyValue(key) {
 		const getResponse = await client.get(key);
-		console.log('GET Response:', getResponse); // Output: value
+		AppLogger.log('GET Response:', getResponse); // Output: value
 	}
 
 	const iterations = 10000; // Number of iterations for performance test
 	let completedCount = 0; // 완료된 작업 수를 카운트할 변수
 
-	console.time('Performance Test');
+	AppLogger.time('Performance Test');
 
 	for (let i = 0; i < iterations; i++) {
 		(async () => {
@@ -451,7 +511,7 @@ const crypto = require('crypto');
 	// 일정 간격으로 완료된 작업 수를 체크하여 모든 작업이 완료되었는지 확인
 	const checkInterval = setInterval(() => {
 		if (completedCount >= iterations) {
-			console.timeEnd('Performance Test');
+			AppLogger.timeEnd('Performance Test');
 			clearInterval(checkInterval); // 모든 작업이 완료되면 인터벌을 종료
 		}
 	}, 100); // 100ms 간격으로 체크
